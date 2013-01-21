@@ -2,6 +2,9 @@
 // Original by Camille Utterback and Romy Achituv (1999):
 // http://camilleutterback.com/projects/text-rain/
 // Implemented in Processing 2.0b7 by Golan Levin, January 2013
+// 
+// This assumes that the participant is in front of a light-colored background. 
+
 
 //===================================================================
 // The live video camera Capture object:
