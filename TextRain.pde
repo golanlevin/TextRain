@@ -25,7 +25,7 @@ void setup() {
   poemLetters = new TextRainLetter[nLetters];
   for (int i=0; i<nLetters; i++) {
     char c = poemString.charAt(i);
-    float x = width * (float)(i+1)/(nLetters+1);
+    float x = width * ((float)(i+1)/(nLetters+1));
     float y = initialLetterYPosition;
     poemLetters[i] = new TextRainLetter(c,x,y);
   }
@@ -36,7 +36,14 @@ void draw() {
   if (video.available()) {
     video.read();
     video.loadPixels();
-    image (video, 0, 0, width, height); 
+    
+    // this translate & scale flips the video left/right. 
+    pushMatrix();
+    translate (width,0); 
+    scale (-1,1);
+    image (video, 0, 0, width, height);
+    popMatrix();
+    
     for (int i=0; i<nLetters; i++) {
       poemLetters[i].update();
       poemLetters[i].draw();
@@ -76,21 +83,28 @@ class TextRainLetter {
     // Update the position of a TextRainLetter. 
     
     // 1. Compute the pixel index corresponding to the (x,y) location of the TextRainLetter.
-    int index = width*(int)y + (int)x;
+    int flippedX = (int)(width-1-x); // because we have flipped the video left/right.
+    int index = width*(int)y + flippedX;
     index = constrain (index, 0, width*height-1);
+    
+    // establish a range around the threshold, within which motion is not required.
+    int thresholdTolerance = 5;
+    int thresholdLo = brightnessThreshold - thresholdTolerance;
+    int thresholdHi = brightnessThreshold + thresholdTolerance;
+
     
     // 2. Fetch the color of the pixel there, and compute its brightness.
     float pixelBrightness = brightness(video.pixels[index]);
     
     // 3. If the TextRainLetter is in a bright area, move downwards.
     //    If it's in a dark area, move up until we're in a light area.
-    if (pixelBrightness > brightnessThreshold) {
+    if (pixelBrightness > thresholdHi) {
       y += letterGravity; //move downward
       
     } else {
-      while ((y > initialLetterYPosition) && (pixelBrightness <= brightnessThreshold)){
+      while ((y > initialLetterYPosition) && (pixelBrightness < thresholdLo)){
         y -= letterGravity; // travel upwards intil it's bright again
-        index = width*(int)y + (int)x;
+        index = width*(int)y + flippedX;
         index = constrain (index, 0, width*height-1);
         pixelBrightness = brightness(video.pixels[index]);
       }
