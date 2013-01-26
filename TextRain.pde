@@ -2,7 +2,6 @@
 // Original by Camille Utterback and Romy Achituv (1999):
 // http://camilleutterback.com/projects/text-rain/
 // Implemented in Processing 2.0b7 by Golan Levin, January 2013
-// 
 // This assumes that the participant is in front of a light-colored background. 
 
 
@@ -19,11 +18,17 @@ int nLetters;
 
 //-----------------------------------
 void setup() {
-  size(320,240); 
-  video = new Capture (this, width, height);
+  size (320,240); 
+  
+  // 640x480 is also a good option, but 320x240 is faster.
+  // Note: this implementation of TextRain assumes that the camera capture 
+  // is at the same resolution as the Processing canvas.
+  video = new Capture (this, width,height);
   video.start();  
 
-  String poemString = "A poem about bodies";
+  String poemString = "A poem about bodies"; 
+  // Camille provides the actual poem in her documentation online. 
+  
   nLetters = poemString.length();
   poemLetters = new TextRainLetter[nLetters];
   for (int i=0; i<nLetters; i++) {
@@ -64,12 +69,19 @@ void keyPressed() {
       brightnessThreshold = max(0, brightnessThreshold-1);
       println("brightnessThreshold = " + brightnessThreshold);
     } 
-  } 
+  } else if (key == ' '){
+    // pressing the spacebar reset the letters to the top of the canvas.
+    for (int i=0; i<nLetters; i++) {
+      poemLetters[i].reset();
+    }
+  }
 }
 
 
 //===================================================================
 class TextRainLetter {
+  // A class to contain a single letter in the TextRain poem. 
+  // Basically, a particle that associates a position and a char.
   
   char  c;
   float x; 
@@ -90,12 +102,12 @@ class TextRainLetter {
     int index = width*(int)y + flippedX;
     index = constrain (index, 0, width*height-1);
     
-    // establish a range around the threshold, within which motion is not required.
+    // Establish a grayscale range around the threshold, 
+    // within which motion is not required.
     int thresholdTolerance = 5;
     int thresholdLo = brightnessThreshold - thresholdTolerance;
     int thresholdHi = brightnessThreshold + thresholdTolerance;
 
-    
     // 2. Fetch the color of the pixel there, and compute its brightness.
     float pixelBrightness = brightness(video.pixels[index]);
     
@@ -116,6 +128,11 @@ class TextRainLetter {
     if ((y >= height-1) || (y < initialLetterYPosition)){
       y = initialLetterYPosition;
     }
+  }
+  
+  //-----------------------------------
+  void reset(){
+    y = initialLetterYPosition;
   }
 
   //-----------------------------------
